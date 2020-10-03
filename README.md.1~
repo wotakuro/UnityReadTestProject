@@ -1,0 +1,2 @@
+# UnityReadTestProject
+読み込み時にBitConverterを利用するのが良いのか？それともunsafeでやるのか？Readはバッファして読んだ方が良いのかなどの実験用
