@@ -35,7 +35,8 @@ public class ReadTest : MonoBehaviour
 
 
         ExecPerfTest("\nNoBuffer", () => { ReadFloatFileWithPtr(floatFile); });
-        ExecPerfTest("NoBufferWithBitConvert", () => { ReadFloatFileWithBitConverter(floatFile); });        
+        ExecPerfTest("NoBufferWithBitConvert", () => { ReadFloatFileWithBitConverter(floatFile); });
+        ExecPerfTest("BufferStream", () => { ReadFloatFileWithBufferPtr(floatFile,512); });
 
         ExecPerfTest("\nWithPtr&Buffer512", () => { ReadFloatFileWithPtrAndBufferCoppy(floatFile,512,0); });
         ExecPerfTest("PtrCopy512", () => { ReadFloatFileWithPtrAndBufferCopyPtr(floatFile, 512,0); });
@@ -56,6 +57,26 @@ public class ReadTest : MonoBehaviour
         exec();
         float execTime = Time.realtimeSinceStartup - start;
         this.txt.text += name + "::" + execTime + "\n";
+    }
+    private unsafe void ReadFloatFileWithBufferPtr(string path,int bufsize)
+    {
+        var buffer = new byte[4];
+        float tmp = 0.0f;
+        using (Stream fs = File.OpenRead(path))
+        {
+            int loopNum = (int)(fs.Length / 4);
+            BufferedStream bufferedStream = new BufferedStream(fs,bufsize);
+            for (int i = 0; i < loopNum; ++i)
+            {
+                bufferedStream.Read(buffer, 0, 4);
+                fixed (byte* ptr = &buffer[0])
+                {
+                    float* fp = (float*)ptr;
+                    tmp = *fp;
+                }
+            }
+            bufferedStream.Close();
+        }
     }
 
 
